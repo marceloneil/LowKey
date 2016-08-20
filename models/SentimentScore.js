@@ -12,7 +12,10 @@ var schemaOptions = {
 var SentimentScoreSchema = new mongoose.Schema({
     username: String,
     userid: String,
-    scores: [Object]
+    scores: [{
+        date: Date,
+        score: Number
+    }]
 }, schemaOptions);
 
 

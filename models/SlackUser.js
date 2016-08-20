@@ -21,9 +21,10 @@ var slackuserSchema = new mongoose.Schema({
     },
     avatar: String,
     messages: [{
-        date: String,
-        messages: [String]
-    }]
+        date: Date,
+        body: String
+    }],
+    dates: [Date]
 }, schemaOptions);
 
 

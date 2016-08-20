@@ -16,7 +16,69 @@ var web = new WebClient(token);
 exports.start = function() {
     rtm.start();
     web.channels.list(function(err, res) {
-        // Channels List
+        for (var i = 0; i < res.channels.length; i++) {
+            console.log(res.channels[i].name);
+            web.channels.history(
+                res.channels[i].id, {
+                    inclusive: 1,
+                    count: 1000
+                },
+                function(err, res) {
+                    for (var j = 0; j < res.messages.length; j++) {
+                        var message = res.messages[j];
+                        var user = rtm.dataStore.getUserById(message.user);
+                        if (message.bot_id) {
+                            continue;
+                        }
+                        else if (!user.id) {
+                            continue;
+                        }
+                        else if (message.text.includes("has joined the channel")) {
+                            continue;
+                        }
+                        var date = new Date(message.ts * 1000);
+                        date.setHours(0, 0, 0, 0);
+                        var msg = {
+                            date: date,
+                            body: message.text.replace(/<.*>/, '')
+                        };
+
+                        SlackUser.update({
+                                userId: user.id
+                            }, {
+                                $push: {
+                                    'messages': msg
+                                }
+                            }, {
+                                safe: true,
+                                upsert: true
+                            },
+                            function(err, data) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            }
+                        );
+
+                        SlackUser.update({
+                                userId: user.id
+                            }, {
+                                $addToSet: {
+                                    'dates': date
+                                }
+                            }, {
+                                safe: true,
+                                upsert: true
+                            },
+                            function(err, data) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            }
+                        );
+                    }
+                })
+        }
     });
     web.users.list(function(err, res) {
         if (err) {
@@ -33,10 +95,8 @@ exports.start = function() {
                         avatar: user.profile.image_192
                     });
                     slackuser.save(function(err, res) {
-                        if(err){
-                            console.log(err);
-                        } else {
-                            console.log(res);
+                        if (err) {
+                            //console.log(err);
                         }
                     });
                 }
@@ -45,10 +105,51 @@ exports.start = function() {
     });
     rtm.on(RTM_EVENTS.MESSAGE, function(message) {
         var user = rtm.dataStore.getUserById(message.user);
-        var date = moment(message.ts * 1000).format('DD/MM/YYYY');
-        var avatar = user.profile.image_192;
-        console.log(avatar);
+        var date = new Date(message.ts * 1000);
+        date.setHours(0, 0, 0, 0);
+        var msg = {
+            date: date,
+            body: message.text.replace(/<.*>/, '')
+        };
 
-        console.log(message);
+        SlackUser.update({
+                userId: user.id
+            }, {
+                $push: {
+                    'messages': msg
+                }
+            }, {
+                safe: true,
+                upsert: true
+            },
+            function(err, data) {
+                if (err) {
+                    console.log(err);
+                }
+            }
+        );
+
+        SlackUser.update({
+                userId: user.id
+            }, {
+                $addToSet: {
+                    'dates': date
+                }
+            }, {
+                safe: true,
+                upsert: true
+            },
+            function(err, data) {
+                if (err) {
+                    console.log(err);
+                }
+            }
+        );
     });
-}
+};
+
+exports.getUsers = function(req, res, next) {
+    SlackUser.find({}, function(err, users) {
+        res.send(users);
+    });
+};

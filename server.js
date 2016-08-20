@@ -73,6 +73,8 @@ app.post('/forgot', userController.forgotPost);
 app.post('/reset/:token', userController.resetPost);
 app.get('/unlink/:provider', userController.ensureAuthenticated, userController.unlink);
 app.post('/analyze', analyzeController.analyze);
+app.get('/slackusers', slackController.getUsers);
+app.get('/personas', analyzeController.personas);
 
 app.get('*', function(req, res) {
   res.redirect('/#' + req.originalUrl);
