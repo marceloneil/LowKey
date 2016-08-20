@@ -41,6 +41,63 @@ footer {
   max-width: 555px;
 }
 
+
+/* Navbar
+/* ------------------------- */
+
+.navbar-default {
+  background-color: #FF2B2B;
+  border-color: #e0e0e0;
+}
+
+.navbar-default .navbar-nav {
+  color: #757575;
+}
+
+.navbar-default .navbar-nav > li > a {
+  color: white;
+  border-bottom: 3px solid transparent;
+  padding-top: 17.5px;
+  padding-bottom: 14.5px;
+  transition: all 0.25s;
+}
+
+.navbar-default .navbar-nav > li > a:hover {
+  background-color: transparent;
+  color: #DBDBDB;
+}
+
+.navbar-default .navbar-nav > li > a.navbar-avatar {
+  padding-top: 13px;
+  padding-bottom: 10px;
+}
+
+.navbar-default .navbar-nav > li > a.navbar-avatar img {
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+}
+.navbar-toggle:hover{
+  background-color: #FF2B2B;
+}
+.navbar-toggle{
+  background-color: #FF2B2B;
+  border: none;
+}
+.navbar-toggle > span{
+  background-color: #FF2B2B;
+  color: white;
+  border: none;
+}
+
+
+.navbar-default .navbar-nav > li.active > a {
+  border-bottom-color: white;
+  background-color: transparent;
+  color: white;
+}
+
+
 /* Alerts
 /* ------------------------- */
 
@@ -268,4 +325,11 @@ textarea {
   border-radius: 2px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+
+.number {
+  font-family: Tahoma, Geneva, sans-serif;
+	font-weight: normal;
+  font-size: 2.75em;
+	text-align: center;
 }

@@ -16,10 +16,15 @@ dotenv.load();
 
 // Models
 var User = require('./models/User');
+var SlackUser = require('./models/SlackUser');
+var SentimentScore = require('./models/SentimentScore');
 
 // Controllers
 var userController = require('./controllers/user');
 var contactController = require('./controllers/contact');
+var slackController = require('./controllers/slack');
+var analyzeController = require('./controllers/analyze');
+slackController.start();
 
 var app = express();
 
@@ -67,6 +72,7 @@ app.post('/login', userController.loginPost);
 app.post('/forgot', userController.forgotPost);
 app.post('/reset/:token', userController.resetPost);
 app.get('/unlink/:provider', userController.ensureAuthenticated, userController.unlink);
+app.post('/analyze', analyzeController.analyze);
 
 app.get('*', function(req, res) {
   res.redirect('/#' + req.originalUrl);
