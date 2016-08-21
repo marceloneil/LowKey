@@ -231,6 +231,7 @@ exports.personas = function(req, res, next) {
     });
 };
 
+
 //return an array of scores
 function calculateScore(results) {
     var angerScore = 0;
@@ -288,8 +289,10 @@ function calculatePersona(data) {
     var personastr = newstr.substring(2, newstr.length - 1);
     return personastr;
 }
-exports.analyzeCoverLetter = function(req, res, next) {
-    console.log(req);
+
+
+exports.analyzePersona = function(req, res, next) {
+    console.log(req.body.text);
     indico.personas(req.body.text).then(function(data) {
         var array = [];
         for (var a in data) {
@@ -300,41 +303,17 @@ exports.analyzeCoverLetter = function(req, res, next) {
         });
         array.reverse();
 
-        var topthree = [];
-        for (var i = 0; i < 3; i++) {
-            var str = JSON.stringify(array[i]);
-            console.log(str);
-            var arr = str.split(",");
-            var newstr = arr[0];
-            var personastr = newstr.substring(2, newstr.length - 1);
-            topthree.push(personastr);
-        }
-
-        res.send(topthree);
+        var str = JSON.stringify(array[0]);
+        var arr = str.split(",");
+        var newstr = arr[0];
+        var personastr = newstr.substring(2, newstr.length - 1);
+        return personastr;
     });
 };
-/*exports.interviewCall = function(req, res, next) {
-    console.log(req);
-    indico.personas(req.body.text).then(function(data) {
-        var array = [];
-        for (var a in data) {
-            array.push([a, data[a]])
-        }
-        array.sort(function(a, b) {
-            return a[1] - b[1]
-        });
-        array.reverse();
 
-        var topthree = [];
-        for (var i = 0; i < 3; i++) {
-            var str = JSON.stringify(array[i]);
-            console.log(str);
-            var arr = str.split(",");
-            var newstr = arr[0];
-            var personastr = newstr.substring(2, newstr.length - 1);
-            topthree.push(personastr);
-        }
-
-        res.send(topthree);
+exports.determineEmotions = function(req, res, next) {
+  
+    indico.emotion(req.body.speech).then(function(data) {
+        res.send(data);
     });
-};*/
+};

@@ -1,7 +1,19 @@
 <div class="container-fluid" ng-controller="HiresCtrl">
   <div ng-show="!loading && !persona && !error" class="center-block" style="display: block">
-    <input type="file" class="w3-btn" file-model="myFile"  /><br><br>
-    <button class="w3-btn" ng-click="uploadFile()" style="left: 47%;position: relative;">Upload</button>
+    <input type="file" id="file"class="inputfile" file-model="myFile"/><br><br>
+    <div class="container-fluid">
+      <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
+              <div class="panel">
+                <div class="w3-container w3-center">
+                  <h4 class="title">SUBMIT COVER LETTER (PDF)</h4>
+                </div>
+                <div class="panel-body">
+                     <label class="w3-btn w3-center" style="width:50%" for="file">Choose a file</label>
+                     <label class="w3-btn w3-center w3-green" style="width:49.5%" ng-click="uploadFile()">Upload</label>
+                </div>
+            </div>
+        </div>
+    </div>
   </div>
   <div ng-if="loading" class="sk-cube-grid">
     <div class="sk-cube sk-cube1"></div>
@@ -14,10 +26,11 @@
     <div class="sk-cube sk-cube8"></div>
     <div class="sk-cube sk-cube9"></div>
   </div>
-  <div ng-if="persona">
-    <div class="row-fluid w3-center" style="margin-top: 5%;">
-      <a class = "w3-btn title" href="{{personaLink}}"><h1>{{persona.toUpperCase()}}</h1></a>
-      <p>click the title to learn more!</p>
+  <div ng-if="persona" class="row">
+    <p ng-click="reset()" class="back-button noselect"><i class="fa fa-chevron-left" ></i> Back</p>
+    <div class="row-fluid w3-center col-md-offset-4 col-md-4" style="margin-top: 15px;">
+      <a style="btn title" href="{{personaLink}}" target="_blank"><h1 class="title">{{persona.toUpperCase()}}</h1></a>
+      <p>{{personaText}} <a href="{{personaLink}}" target="_blank">Learn More</a></p>
       <img src="{{personaAvatar}}">
     </div>
     <!--<div class="row-fluid">-->

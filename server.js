@@ -79,9 +79,10 @@ app.post('/analyzechannel', analyzeController.analyzeChannel);
 app.get('/slackusers', slackController.getUsers);
 app.get('/slackchannels', slackController.getChannels);
 app.post('/personas', analyzeController.personas);
-app.post('/coverletter', analyzeController.analyzeCoverLetter);
+app.post('/coverletter', analyzeController.analyzePersona);
 //app.post('/interviewCall', analyzeController.interviewCall);
 app.post('/uploadfile', multer({ dest: './uploads/'}).single('file'), analyzeController.uploadFile);
+app.post('/speechemotions', analyzeController.determineEmotions);
 
 app.get('*', function(req, res) {
   res.redirect('/#' + req.originalUrl);

@@ -1,28 +1,26 @@
 angular.module('MyApp')
     .controller('SpeechCtrl', function($scope, $location, $window, $auth, $http) {
 
+        $scope.lineLabels = ["0:00"];
+        $scope.lineSeries = ['Contentment', 'Stress'];
+        $scope.lineData = [
+            [0.2],
+            [0.2]
+        ];
+        $scope.lineOptions = {
+            title: {
+                display: true,
+                text: "Applicant",
+            },
+            legend: {
+                display: true
+            }
+        };
+
         var recognition = new webkitSpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        var labels = 50;
-        $scope.chartOverTime = [];
-        $scope.chartOverTime.push({
-            labels: labels,
-            series: ['Emotion Score'],
-            data: [3, 5, 2, 1],
-            //fillColor: colours,
-            //pieData: pieData,
-            //pieLabels: pieLabels,
-            //pieColours: pieColours,
-            //persona: res2.data.persona,
-            //userScoreCalculated: userScore,
-            options: {
-                title: {
-                    display: true,
-                    text: "Applicant"
-                }
-            }
-        });
+        recognition.stop();
         var indicoString = "";
         var lastWord = "";
         var previousString = "";
@@ -51,9 +49,8 @@ angular.module('MyApp')
             console.log(word);
             indicoString += word;
         };
-        var tensecondWord;
 
-        $scope.updatePersona = function() {
+        var updatePersona = function() {
             $http({
                 method: 'POST',
                 data: {
@@ -62,42 +59,65 @@ angular.module('MyApp')
                 url: 'https://lowkey-kshen3778.c9users.io/coverletter'
             }).then(function successCallback(response) {
                 console.log(response);
-                $scope.currentPersona = response.data[0];
+                $scope.currentPersona = response.data[0][0];
             });
         };
-        //var timeToSwitch = false;
-        setInterval(function() {
-            console.log(recognition);
-            if (recognition.lang == "") {
+
+$scope.restart = function(){
+    recognition.start();
+};
+
+        /*setInterval(function() {
+            if (recognition.lang == "" && $scope.recordingState) {
                 recognition.stop();
                 recognition.start();
             }
-            //}
-        }, 5000);
+        }, 5000);*/
 
-        recognition.stop();
+
+        var sec = 0;
+
+        function pad(val) {
+            return val > 9 ? val : "0" + val;
+        }
+        var timer;
         $scope.recordingState = false;
         $scope.toggleRecording = function() {
             if ($scope.recordingState == true) {
+                clearInterval(timer);
                 recognition.stop();
                 $scope.recordingState = false;
                 //chuck stuff to indico here
-                $scope.updatePersona();
+                updatePersona();
             }
             else {
+                timer = setInterval(function() {
+                    var timeString = pad(parseInt(sec / 60, 10)) + ":" + pad(++sec % 60);
+                    if (sec % 5 == 0) {
+                        $scope.lineLabels.push(timeString);
+                        //updatePersona();
+                        $http({
+                            method: 'POST',
+                            data: {
+                                speech: indicoString,
+                            },
+                            url: 'https://lowkey-kshen3778.c9users.io/speechemotions'
+                        }).then(function successCallback(res) {
+                            console.log(res);
+                            recognition.stop();
+                            recognition.start();
+                            $scope.lineData[0].push(res.data.joy);
+                            $scope.lineData[1].push(res.data.fear);
+                            console.log($scope.lineData[0][$scope.lineData.length -2]);
+                            if($scope.lineData[0].length > 2 && $scope.lineData[0][$scope.lineData.length -3]== $scope.lineData[0][$scope.lineData.length -2]){
+                                recognition.start();
+                                console.log("fixed");
+                            }
+                        });
+                    }
+                }, 1000);
                 recognition.start();
                 $scope.recordingState = true;
             }
         };
-        //the charts
-        $scope.genLineGraph = function(dayArray) {
-            //Chart.defaults.global.colors[0] = '#97BBCD';
-            $scope.lineLabels = dayArray.labels;
-            $scope.lineSeries = dayArray.series;
-            $scope.lineData = dayArray.data;
-            $scope.lineOptions = dayArray.options;
-            //$scope.currentPersona = dayArray.persona;
-            //$scope.currentPersonaLink = personaArray[dayArray.persona];
-        };
-        $scope.genLineGraph($scope.chartOverTime);
     })
