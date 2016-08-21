@@ -1,16 +1,23 @@
 <div class="container-fluid">
+  <script>
+    var showGraph = function(id) {
+      alert(id);
+
+    };
+  </script>
   <div ng-show="isAuthenticated()">
     <div class="container">
       <div class="row-fluid">
         <h1 id="slackChannelName">#{{slackChannelName}}</h1>
-        <button class="w3-btn w3-center" style="position: relative;left: 45%;margin-bottom: 50px;">Open Modal</button>
-
+        <button class="w3-btn w3-center" ng-click="showGraph('hey')" style="position: relative;left: 45%;margin-bottom: 50px;">Open Modal</button>
       </div>
       <div id="id01" class="w3-modal">
         <div class="w3-modal-content" style="height: 600px;">
           <div class="w3-container">
             <span onclick="document.getElementById('id01').style.display='none'" class="w3-closebtn">&times;</span>
             <canvas id="userMentalHealth" style="left: 0px;position: relative;top: 0px;"></canvas>
+            <canvas id="doughnut" class="chart chart-doughnut" chart-data="data" chart-labels="labels">
+            </canvas>
           </div>
         </div>
       </div>
@@ -19,6 +26,17 @@
     </script>
 
     <div class="row" id="userCardsCon">
+      <div ng-repeat="x in usersCards">
+        <div class="col-sm-2 w3-animate-zoom userCard" style="cursor: pointer;">
+          <div class="panel">
+            <div class="panel-body">
+              <h2 class="w3-center " style="margin-bottom: 100px;">{{x}}</h2>
+              <p class="number" style="margin-bottom: -145px;">{{x}}</p>
+              <canvas id="hi" style="margin-bottom: 50px;" width="100" height="100" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    </div>
+  </div>
 </div>

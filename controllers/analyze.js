@@ -9,7 +9,6 @@ var logError = function(err) {
 }
 
 exports.analyze = function(req, res, next) {
-    console.log(req.body.userid);
     //get slack user
     SlackUser.findOne({
         userId: req.body.userid
@@ -17,8 +16,7 @@ exports.analyze = function(req, res, next) {
         
         var dailyMessages = [];
         if (slackuser.dates) {
-            console.log("getting dates");
-            
+
             for (var i = 0; i < slackuser.dates.length; i++) {
                 var completemsg = "";
                 for (var j = 0; j < slackuser.messages.length; j++) {
@@ -45,18 +43,17 @@ exports.analyze = function(req, res, next) {
                 text.push(dailyMessages[i].msg);
             }
 
-            console.log(text);
 
 
             indico.emotion(text).then(function(data) {
                 
                 var sentimentscore = new SentimentScore();
-                sentimentscore.username = req.body.name;
+                sentimentscore.username = slackuser.name;
                 sentimentscore.userid = slackuser.userId;
                 var scores = [];
 
                 var calculatedScores = calculateScore(data);
-                console.log(calculatedScores);
+
                 var results = [];
                 for (var i = 0; i < calculatedScores.length; i++) {
                     //results.push({date: dailyMessages[i].date, score: calculatedScores[i]});
@@ -95,14 +92,19 @@ function calculateScore(results) {
     var angerScore = 0;
     var joyScore = 0;
     var sadnessScore = 0;
+    var fearScore = 0;
+    var surpriseScore = 0;
     var totalScore;
     var scoreArray = new Array(results.length);
     for (var i = 0; i < results.length; i++) {
         totalScore = 50;
-        angerScore += (results[i].anger * 5) / 2;
-        joyScore += (results[i].joy * 10) / 2;
-        sadnessScore += (results[i].sadness * 5) / 2;
-        totalScore = totalScore - angerScore - sadnessScore + joyScore;
+        angerScore = (results[i].anger * 50) / 2;
+        joyScore = (results[i].joy * 75) / 2;
+        sadnessScore = (results[i].sadness * 25) / 2;
+        fearScore = (results[i].fear * 25) / 2;
+        surpriseScore = (results[i].surprise * 25) / 2;
+        
+        totalScore = totalScore - angerScore - sadnessScore - fearScore + (joyScore * 3) + surpriseScore;
         scoreArray[i] = totalScore;
     }
 

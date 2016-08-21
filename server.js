@@ -17,6 +17,7 @@ dotenv.load();
 // Models
 var User = require('./models/User');
 var SlackUser = require('./models/SlackUser');
+var SlackChannel = require('./models/SlackChannel');
 var SentimentScore = require('./models/SentimentScore');
 
 // Controllers

@@ -1,10 +1,13 @@
 var moment = require('moment');
+var async = require('async');
 var RtmClient = require('@slack/client').RtmClient;
 var WebClient = require('@slack/client').WebClient;
 var MemoryDataStore = require('@slack/client').MemoryDataStore;
 var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 var SlackUser = require('../models/SlackUser');
+var SlackChannel = require('../models/SlackChannel');
+var firstTime = false;
 
 var token = process.env.SLACK_API_TOKEN || '';
 var rtm = new RtmClient(token, {
@@ -16,69 +19,91 @@ var web = new WebClient(token);
 exports.start = function() {
     rtm.start();
     web.channels.list(function(err, res) {
-        for (var i = 0; i < res.channels.length; i++) {
-            console.log(res.channels[i].name);
+        async.map(res.channels, 
+        function (channel, Callback) {
+            if (firstTime) {
+                var slackchannel = new SlackChannel({
+                    channelId: channel.id,
+                    channelName: channel.name
+                });
+                slackchannel.save(function(err, res) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+            }
+            console.log(channel);
             web.channels.history(
-                res.channels[i].id, {
+                channel.id, {
                     inclusive: 1,
-                    count: 1000
+                    count: 10
                 },
                 function(err, res) {
-                    for (var j = 0; j < res.messages.length; j++) {
-                        var message = res.messages[j];
-                        var user = rtm.dataStore.getUserById(message.user);
-                        if (message.bot_id) {
-                            continue;
-                        }
-                        else if (!user.id) {
-                            continue;
-                        }
-                        else if (message.text.includes("has joined the channel")) {
-                            continue;
-                        }
-                        var date = new Date(message.ts * 1000);
-                        date.setHours(0, 0, 0, 0);
-                        var msg = {
-                            date: date,
-                            body: message.text.replace(/<.*>/, '')
-                        };
-
-                        SlackUser.update({
-                                userId: user.id
-                            }, {
-                                $push: {
-                                    'messages': msg
-                                }
-                            }, {
-                                safe: true,
-                                upsert: true
-                            },
-                            function(err, data) {
-                                if (err) {
-                                    console.log(err);
-                                }
+                    if (firstTime) {
+                        for (var j = 0; j < res.messages.length; j++) {
+                            var message = res.messages[j];
+                            if (message.bot_id || !message.user || message.text.includes("has joined the channel")) {
+                                continue;
                             }
-                        );
+                            else {
+                                var date = new Date(message.ts * 1000);
+                                date.setHours(0, 0, 0, 0);
+                                var msg = {
+                                    date: date,
+                                    body: message.text.replace(/<.*>/, '')
+                                };
 
-                        SlackUser.update({
-                                userId: user.id
-                            }, {
-                                $addToSet: {
-                                    'dates': date
-                                }
-                            }, {
-                                safe: true,
-                                upsert: true
-                            },
-                            function(err, data) {
-                                if (err) {
-                                    console.log(err);
-                                }
+                                SlackUser.update({
+                                        userId: message.user
+                                    }, {
+                                        $push: {
+                                            'messages': msg
+                                        },
+                                        $addToSet: {
+                                            'dates': date
+                                        }
+                                    }, {
+                                        safe: true,
+                                        upsert: true
+                                    },
+                                    function(err, data) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
+                                    }
+                                );
+
+                                SlackChannel.update({
+                                        channelId: channel.id
+                                    }, {
+                                        $push: {
+                                            'messages': msg
+                                        },
+                                        $addToSet: {
+                                            'dates': date,
+                                            'users': message.user
+                                        }
+                                    }, {
+                                        safe: true,
+                                        upsert: true
+                                    },
+                                    function(err, data) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
+                                    }
+                                );
                             }
-                        );
+                        }
                     }
-                })
-        }
+                }
+            )
+        },
+        function(err, res){
+            if(err){
+                console.log(err, res);
+            }
+        });
     });
     web.users.list(function(err, res) {
         if (err) {
@@ -87,7 +112,7 @@ exports.start = function() {
         else {
             for (var i = 0; i < res.members.length; i++) {
                 var user = res.members[i];
-                if (!user.is_bot && user.id != 'USLACKBOT') {
+                if (!user.is_bot && user.id != 'USLACKBOT' && firstTime) {
                     var slackuser = new SlackUser({
                         userId: user.id,
                         name: user.name,
@@ -96,7 +121,7 @@ exports.start = function() {
                     });
                     slackuser.save(function(err, res) {
                         if (err) {
-                            //console.log(err);
+                            console.log(err);
                         }
                     });
                 }
@@ -111,40 +136,74 @@ exports.start = function() {
             date: date,
             body: message.text.replace(/<.*>/, '')
         };
+        console.log(message.channel);
 
-        SlackUser.update({
-                userId: user.id
-            }, {
-                $push: {
-                    'messages': msg
-                }
-            }, {
-                safe: true,
-                upsert: true
-            },
-            function(err, data) {
-                if (err) {
-                    console.log(err);
-                }
-            }
-        );
+        if (message.bot_id) {
+            // Bot
+        }
+        else if (!user.id) {
+            console.log('No user Id');
+        }
+        else if (message.text.includes("has joined the channel")) {
+            // Notification
+        }
+        else {
 
-        SlackUser.update({
-                userId: user.id
-            }, {
-                $addToSet: {
-                    'dates': date
-                }
-            }, {
-                safe: true,
-                upsert: true
-            },
-            function(err, data) {
-                if (err) {
-                    console.log(err);
-                }
+            if (user.name == "peter") {
+                web.reactions.add("key", {
+                    timestamp: parseFloat(message.ts),
+                    channel: message.channel
+                }, function(err, res) {
+                    if (err || !res.ok) {
+                        console.log(res);
+                        console.log(err);
+                    }
+                });
             }
-        );
+
+            SlackUser.update({
+                    userId: user.id
+                }, {
+                    $push: {
+                        'messages': msg
+                    },
+                    $addToSet: {
+                        'dates': date
+                    }
+                }, {
+                    safe: true,
+                    upsert: true
+                },
+                function(err, data) {
+                    if (err) {
+                        console.log(err);
+                    }
+                }
+            );
+
+            if (message.channel.charAt(0) === "C") {
+                SlackChannel.update({
+                        channelId: message.channel
+                    }, {
+                        $push: {
+                            'messages': msg
+                        },
+                        $addToSet: {
+                            'dates': date,
+                            'users': message.user
+                        }
+                    }, {
+                        safe: true,
+                        upsert: true
+                    },
+                    function(err, data) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    }
+                );
+            }
+        }
     });
 };
 
