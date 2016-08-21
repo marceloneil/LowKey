@@ -1,4 +1,4 @@
-angular.module('MyApp', ['ngRoute', 'satellizer'])
+angular.module('MyApp', ['ngRoute', 'satellizer', 'chart.js'])
   .config(function($routeProvider, $locationProvider, $authProvider) {
     $locationProvider.html5Mode(true);
 
@@ -6,6 +6,10 @@ angular.module('MyApp', ['ngRoute', 'satellizer'])
       .when('/', {
         templateUrl: 'partials/home.html',
         controller: 'HomeCtrl'
+      })
+      .when('/home2', {
+        templateUrl: 'partials/home2.html',
+        controller: 'Home2Ctrl'
       })
       .when('/contact', {
         templateUrl: 'partials/contact.html',

@@ -217,3 +217,9 @@ exports.getUsers = function(req, res, next) {
         res.send(users);
     });
 };
+
+exports.getChannels = function(req, res, next) {
+    SlackChannel.find({}, function(err, channels) {
+        res.send(channels);
+    });
+};

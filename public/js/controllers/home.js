@@ -1,47 +1,80 @@
-angular.module('chart.js',[]);
-var charts = angular.module('myModule',['chart.js']);
+//angular.module('chart.js', []);
+//var charts = angular.module('myModule', ['chart.js']);
 
-angular.module('MyApp', ["myModule"])
+angular.module('MyApp')
   .controller('HomeCtrl', function($scope, $location, $window, $auth, $http) {
-      $scope.isAuthenticated = function() {
-        return $auth.isAuthenticated();
-      };
+    $scope.isAuthenticated = function() {
+      return $auth.isAuthenticated();
+    };
 
-      $scope.labels = ["Download Sales", "In-Store Sales", "Mail-Order Sales"];
-      $scope.data = [300, 500, 100];
-      $scope.slackChannelName = "General";
+    $scope.labels = ["Download Sales", "In-Store Sales", "Mail-Order Sales"];
+    $scope.data = [300, 500, 100];
+    $scope.slackChannelName = "General";
 
-      var showGraph = function(id) {
-        document.getElementById('id01').style.display = 'block';
-        console.log(id);
-        /*
+    $scope.channelCards = [];
+    // This gets initialized once upon page load to retrieve the usernames
+    $http({
+      method: 'GET',
+      url: 'https://lowkey-kshen3778.c9users.io/slackchannels'
+    }).then(function successCallback(response) {
+      for (var i = 0; i < response.data.length; i++) {
         $http({
-            method: 'POST',
-            data: {
-              userid: response.data[i].userId
-            },
-            url: 'https://lowkey-kshen3778.c9users.io/analyze'
-          }).then(function successCallback(res) {
-        
-          });*/
-        //console.log(user.score)
-        /*$http({
-          method: 'GET',
-          url: 'https://lowkey-kshen3778.c9users.io/personas'
-        }).then(function successCallback(response) {
-          console.log(response.data);
-        }, function errorCallback(response) {
-          console.log(response);
-        });*/
-      };
-      $scope.usersCards = [
+          method: 'POST',
+          data: {
+            channelid: response.data[i].channelId
+          },
+          url: 'https://lowkey-kshen3778.c9users.io/analyzechannel'
+        }).then(function successCallback(res) {
+          var channelScore = 0;
+          var data = [];
+          var labels = [];
+          var array = res.data.scores;
+          array.sort(function(a, b) {
+            return new Date(a.date) - new Date(b.date);
+          });
+          for (var a = 0; a < res.data.scores.length; a++) {
+            channelScore += res.data.scores[a].score;
+            data.push(array[a].score);
+            labels.push(new Date(array[a].date).toDateString());
+          }
+          channelScore = channelScore / res.data.scores.length;
+          channelScore = Math.round(channelScore * 10) / 10;
 
-      ];
-      // This gets initialized once upon page load to retrieve the usernames
-      $http({
-        method: 'GET',
-        url: 'https://lowkey-kshen3778.c9users.io/slackusers'
-      }).then(function successCallback(response) {
+
+          var pieData = [channelScore, 100 - channelScore];
+          var pieLabels = ['Emotion Score', ''];
+
+          $scope.channelCards.push({
+            labels: labels,
+            series: ['Emotion Score'],
+            data: data,
+            //colours: ['#5cb360', '#d4e4d5'],
+            channelname: res.data.channelname,
+            channelScoreCalculated: channelScore,
+            pieData: pieData,
+            pieLabels: pieLabels,
+            options: {
+              title: {
+                display: true,
+                text: res.data.channelname
+              }
+            }
+          });
+        });
+      }
+    });
+
+
+
+    $scope.showGraph = function(id) {
+      document.getElementById('id01').style.display = 'block';
+    };
+    $scope.usersCards = [];
+    // This gets initialized once upon page load to retrieve the usernames
+    $http({
+      method: 'GET',
+      url: 'https://lowkey-kshen3778.c9users.io/slackusers'
+    }).then(function successCallback(response) {
         var personaArray = [
           ("Architect", "https://www.16personalities.com/intj-personality"),
           ("Logician", "https://www.16personalities.com/intp-personality"),
@@ -66,84 +99,75 @@ angular.module('MyApp', ["myModule"])
           $http({
             method: 'POST',
             data: {
-              userid: response.data[i].userId
+              userid: response.data[i].userId,
             },
             url: 'https://lowkey-kshen3778.c9users.io/analyze'
           }).then(function successCallback(res) {
-            console.log(res);
-            var userScore = 0;
-            for (var a = 0; a < res.data.scores.length; a++) {
-              userScore += res.data.scores[a].score;
-            }
-            userScore = userScore / res.data.scores.length;
-            userScore = Math.round(userScore * 10) / 10;
-            res.userScoreCalculated = userScore;
-            //console.log(userScore);
-            angular.element(document.getElementById("userCardsCon")).append('<div class="col-sm-2 w3-animate-zoom userCard" style="cursor: pointer;" onclick="showGraph(\''+res.data.id+'\')"><div class="panel"><div class="panel-body" ><h2 class="w3-center " style="margin-bottom: 100px;">' + res.data.username + '</h2><p class="number" style="margin-bottom: -145px;">' + userScore + '</p><canvas id="' + res.data.username + 'doughnutChart" style="margin-bottom: 50px;" width="100" height="100"></div></div></div>');
+              var userScore = 0;
+              var data = [];
+              var labels = [];
+              var colours = ['#FFFFFF', '#FFFFFF'];
+              var array = res.data.scores;
+              array.sort(function(a, b) {
+                return new Date(a.date) - new Date(b.date);
+              });
+              for (var a = 0; a < array.length; a++) {
+                userScore += array[a].score;
+                data.push(array[a].score);
+                labels.push(new Date(array[a].date).toDateString());
+              }
+              userScore = userScore / res.data.scores.length;
+              userScore = Math.round(userScore * 10) / 10;
+              var pieData = [userScore, 100 - userScore];
+              var pieLabels = ['Emotion Score', ''];
 
-            var canvas = document.getElementById(res.data.username + 'doughnutChart');
-            var ctx = canvas.getContext("2d");
+              $http({
+                method: 'POST',
+                data: {
+                  userid: res.data.userid
+                },
+                url: 'https://lowkey-kshen3778.c9users.io/personas'
+              }).then(function successCallback(res2) {
+                  $scope.usersCards.push({
+                    labels: labels,
+                    series: ['Emotion Score'],
+                    data: data,
+                    //colours: colours,
+                    pieData: pieData,
+                    pieLabels: pieLabels,
+                    username: res.data.username,
+                    persona: res2.data.persona,
+                    userScoreCalculated: userScore,
+                    options: {
+                      title: {
+                        display: true,
+                        text: res.data.username
+                      }
+                    }
+                  });
+                },
+                function errorCallback(response) {
+                  console.log(response);
+                });
 
-            // Doughnut Chart Data
-            var doughnutData = {
-              labels: [
-                "Score"
-              ],
-              datasets: [{
-                data: [userScore, 100 - userScore],
-                backgroundColor: [
-                  "#5cb360",
-                  "#d4e4d5"
-                ],
-                hoverBackgroundColor: [
-                  "#5cb360",
-                  "#d4e4d5"
-                ]
-              }]
-            };
 
-
-            // Create the Doughnut Chart
-            var scoreChart = new Chart(ctx, {
-              type: "doughnut",
-              data: doughnutData
+            },
+            function errorCallback(response) {
+              console.log(response);
             });
-          }, function errorCallback(response) {
-            console.log(response);
-          });
         }
-            $scope.usersCards.push(res.data);
-
-          }, function errorCallback(response) {
-            console.log(response);
-          });
-        }
+      },
+      function errorCallback(response) {
+        console.log(response);
       });
-        /*$http({
-          method: 'POST',
-          data: {
-            name: "splacorn"
-          },
-          url: 'https://lowkey-kshen3778.c9users.io/analyze'
-        }).then(function successCallback(response) {
-          console.log(response);
-        }, function errorCallback(response) {
-          console.log(response);
-        });*/
 
 
-
-
-
-
-
-
-
-
-        $scope.lineGraphData = [];
-        $scope.genLineGraph = function(dayArray) {
-          for (var i = 0; i < dayArray.length; i++) {
-            $scope.lineGraphData.push(dayArray[i].score);
-          }
-        };
-});
+    $scope.lineGraphData = [];
+    $scope.genLineGraph = function(dayArray) {
+      $scope.lineLabels = dayArray.labels;
+      $scope.lineSeries = dayArray.series;
+      $scope.lineData = dayArray.data;
+      $scope.lineOptions = dayArray.options;
+      document.getElementById('id01').style.display = 'block';
+    };
+  });
