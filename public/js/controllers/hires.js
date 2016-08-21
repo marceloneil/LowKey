@@ -1,18 +1,45 @@
 angular.module('MyApp')
   .controller('HiresCtrl', function($scope, $timeout, $location, $window, $auth, $http) {
 
-    $scope.$on('flow::fileAdded', function(event, $flow, flowFile) {
-      console.log('please');
-      event.preventDefault(); //prevent file from uploading
-      console.log('please');
-      console.log(flowFile);
-    });
-    
-    $scope.method = function( $file, $event, $flow ){
-      console.log('please');
-      $event.preventDefault();
-      console.log('please');
-      console.log($file);
+    $scope.loading = false;
+
+    $scope.uploadFile = function() {
+      $scope.loading = true;
+
+      var file = $scope.myFile;
+      console.log(file);
+      var uploadUrl = "/uploadfile";
+      var fd = new FormData();
+      fd.append('file', file);
+
+      $http.post(uploadUrl, fd, {
+          transformRequest: angular.identity,
+          headers: {
+            'Content-Type': undefined,
+            enctype: 'multipart/form-data'
+          }
+        })
+        .success(function(res) {
+          console.log(res);
+          $scope.loading = false;
+          $scope.persona = res.persona;
+          $scope.personaLink = personaArray[res.persona];
+          $scope.personaAvatar = personaArray[res.persona]
+            .replace('https://www.16personalities.com/', 'https://www.16personalities.com/images/types/')
+            .replace('-personality', '.png');
+          console.log($scope.personaAvatar);
+          //$scope.bestPersonaLink = 0;
+          //$scope.secondPersonaLink = 0;
+          //$scope.thirdPersonaLink = 0;
+          //document.getElementById("bestPersona").html();
+          //document.getElementById("secondPersona").html();
+          //document.getElementById("thirdPersona").html();
+        })
+        .error(function(err) {
+          console.log(err);
+          $scope.loading = false;
+          $scope.error = "Please upload as a text file (.txt)."
+        });
     };
 
     var personaArray = {

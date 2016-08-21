@@ -48,7 +48,7 @@ angular.module('MyApp')
           }else if(channelScore <= 40){
             Chart.defaults.global.colors[0] =  '#ca0041';
           }else{
-            Chart.defaults.global.colors[0] =  '#ffd500';
+            Chart.defaults.global.colors[0] =  '#97BBCD';
           }
 
 
@@ -134,7 +134,7 @@ angular.module('MyApp')
                 }else if(userScore <= 40){
                   Chart.defaults.global.colors[0] =  '#ca0041';
                 }else{
-                  Chart.defaults.global.colors[0] =  '#ffd500';
+                  Chart.defaults.global.colors[0] =  '#97BBCD';
                 }
                   $scope.usersCards.push({
                     labels: labels,

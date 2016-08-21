@@ -1,0 +1,22 @@
+<div class="container-fluid">
+    <!--<script>
+            if (window.location.protocol === "http:") window.location.protocol = "https:";
+        </script>-->
+    
+    <div class="container w3-center" style = "margin-top: 10%;">
+        <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
+              <div class="panel">
+                <div class="panel-body">
+                    <h1>Press to capture</h1>
+                    <button class="w3-btn col-sm-4 col-sm-offset-4" ng-click="toggleRecording()"><i ng-show="recordingState == false" class="fa fa-play"></i><i ng-show="recordingState == true" class="fa fa-stop"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="w3-container w3-black w3-center w3-padding-small">
+        <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
+            {{currentPersona}}
+        </div>
+    </div>
+    <canvas id="line" class="chart chart-line" chart-data="lineData" chart-labels="lineLabels" chart-series="lineSeries" chart-options="lineOptions"></canvas>
+</div>

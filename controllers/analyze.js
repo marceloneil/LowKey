@@ -3,14 +3,57 @@ var SlackUser = require('../models/SlackUser');
 var SlackChannel = require('../models/SlackChannel');
 var SentimentScore = require('../models/SentimentScore');
 var ChannelSentimentScore = require('../models/ChannelSentimentScore');
-let fs = require('fs'),
-PDFParser = require("./pdf2json/PDFParser");
+var fs = require('fs');
+var pdfText = require('pdf-text')
+
+//PDFParser = require("./pdf2json/PDFParser");
 
 indico.apiKey = process.env.INDICO;
 
 var logError = function(err) {
     console.log(err);
-}
+};
+
+exports.uploadFile = function(req, res, next) {
+    /** When using the "single"
+    data come in "req.file" regardless of the attribute "name". **/
+    var tmp_path = req.file.path;
+
+    /** The original name of the uploaded file
+        stored in the variable "originalname". **/
+    var target_path = 'uploads/coverletter.pdf';
+
+    /** A better way to copy the uploaded file. **/
+    var src = fs.createReadStream(tmp_path);
+    var dest = fs.createWriteStream(target_path);
+    src.pipe(dest);
+    src.on('end', function() {
+        var buffer = fs.readFileSync(target_path);
+        pdfText(buffer, function(err, chunks) {
+            console.log(chunks.toString());
+            fs.unlink(target_path, function(err) {
+                if (err) {
+                    console.log(err);
+                }
+                indico.personas(chunks.toString()).then(function(data) {
+                    console.log(data);
+
+                    var calculatedPersona = calculatePersona(data);
+
+                    res.send({
+                        "persona": calculatedPersona
+                    });
+
+                }).catch(logError);
+            });
+        });
+    });
+    src.on('error', function(err) {
+        res.send('error');
+    });
+
+
+};
 
 exports.analyze = function(req, res, next) {
     //get slack user
@@ -31,7 +74,6 @@ exports.analyze = function(req, res, next) {
                     var date1 = slackuser.messages[j].date + "";
                     var date2 = slackuser.dates[i] + "";
                     if (date1 == date2) {
-                        //console.log("equal");
                         completemsg += slackuser.messages[j].body + " ";
                     }
                 }
@@ -42,8 +84,6 @@ exports.analyze = function(req, res, next) {
                 });
 
             }
-
-            //console.log(dailyMessages);
 
 
             var text = [];
@@ -108,7 +148,6 @@ exports.analyzeChannel = function(req, res, next) {
                     var date1 = slackchannel.messages[j].date + "";
                     var date2 = slackchannel.dates[i] + "";
                     if (date1 == date2) {
-                        //console.log("equal");
                         completemsg += slackchannel.messages[j].body + " ";
                     }
                 }
@@ -120,9 +159,6 @@ exports.analyzeChannel = function(req, res, next) {
 
             }
 
-            //console.log(dailyMessages);
-
-
             var text = [];
             for (var i = 0; i < dailyMessages.length; i++) {
                 text.push(dailyMessages[i].msg);
@@ -131,7 +167,6 @@ exports.analyzeChannel = function(req, res, next) {
 
 
             indico.emotion(text).then(function(data) {
-                console.log(slackchannel);
                 var channelsentimentscore = new ChannelSentimentScore();
                 channelsentimentscore.channelname = slackchannel.channelName;
                 channelsentimentscore.channelid = slackchannel.channelId;
@@ -148,7 +183,6 @@ exports.analyzeChannel = function(req, res, next) {
                     });
                 }
                 channelsentimentscore.scores = scores;
-
 
                 channelsentimentscore.save(function(err, sscore) {
                     if (err) {
@@ -183,31 +217,17 @@ exports.personas = function(req, res, next) {
             for (var j = 0; j < slackuser.messages.length; j++) {
                 completemsg += slackuser.messages[j].body + " ";
             }
-
-
-
             indico.personas(completemsg).then(function(data) {
-
-
-
                 var calculatedPersona = calculatePersona(data);
-
-                console.log(data);
-
-
                 res.send({
                     "persona": calculatedPersona
                 });
-
             }).catch(logError);
-
         }
         else {
             console.log("error");
             res.send("this is an error");
-
         }
-
     });
 };
 
@@ -231,14 +251,10 @@ function calculateScore(results) {
         totalScore = totalScore - angerScore - sadnessScore - fearScore + joyScore + surpriseScore;
         scoreArray[i] = totalScore;
     }
-
-
     return scoreArray;
-
 }
 
 function calculatePersona(data) {
-
     var array = [];
     for (var a in data) {
         array.push([a, data[a]])
@@ -247,9 +263,6 @@ function calculatePersona(data) {
         return a[1] - b[1]
     });
     array.reverse();
-
-
-
     /*
     Architect
     Logician
@@ -275,13 +288,8 @@ function calculatePersona(data) {
     var personastr = newstr.substring(2, newstr.length - 1);
     return personastr;
 }
-
-
-
-
-
 exports.analyzeCoverLetter = function(req, res, next) {
-    console.log(req.body);
+    console.log(req);
     indico.personas(req.body.text).then(function(data) {
         var array = [];
         for (var a in data) {
@@ -305,3 +313,28 @@ exports.analyzeCoverLetter = function(req, res, next) {
         res.send(topthree);
     });
 };
+/*exports.interviewCall = function(req, res, next) {
+    console.log(req);
+    indico.personas(req.body.text).then(function(data) {
+        var array = [];
+        for (var a in data) {
+            array.push([a, data[a]])
+        }
+        array.sort(function(a, b) {
+            return a[1] - b[1]
+        });
+        array.reverse();
+
+        var topthree = [];
+        for (var i = 0; i < 3; i++) {
+            var str = JSON.stringify(array[i]);
+            console.log(str);
+            var arr = str.split(",");
+            var newstr = arr[0];
+            var personastr = newstr.substring(2, newstr.length - 1);
+            topthree.push(personastr);
+        }
+
+        res.send(topthree);
+    });
+};*/

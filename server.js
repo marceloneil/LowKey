@@ -10,6 +10,7 @@ var mongoose = require('mongoose');
 var jwt = require('jsonwebtoken');
 var moment = require('moment');
 var request = require('request');
+var multer = require('multer');
 
 // Load environment variables from .env file
 dotenv.load();
@@ -79,6 +80,8 @@ app.get('/slackusers', slackController.getUsers);
 app.get('/slackchannels', slackController.getChannels);
 app.post('/personas', analyzeController.personas);
 app.post('/coverletter', analyzeController.analyzeCoverLetter);
+//app.post('/interviewCall', analyzeController.interviewCall);
+app.post('/uploadfile', multer({ dest: './uploads/'}).single('file'), analyzeController.uploadFile);
 
 app.get('*', function(req, res) {
   res.redirect('/#' + req.originalUrl);
