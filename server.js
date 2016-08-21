@@ -78,6 +78,7 @@ app.post('/analyzechannel', analyzeController.analyzeChannel);
 app.get('/slackusers', slackController.getUsers);
 app.get('/slackchannels', slackController.getChannels);
 app.post('/personas', analyzeController.personas);
+app.post('/coverletter', analyzeController.analyzeCoverLetter);
 
 app.get('*', function(req, res) {
   res.redirect('/#' + req.originalUrl);

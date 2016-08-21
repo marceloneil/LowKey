@@ -1,13 +1,14 @@
 <div class="container-fluid">
   <div ng-show="isAuthenticated()">
     <div class="container">
-      <div id="id01" class="w3-modal">
+      <div id="id01" class="w3-modal w3-animate-opacity">
         <div class="w3-modal-content" style="height: 600px;">
           <div class="w3-container">
             <span onclick="document.getElementById('id01').style.display='none'" class="w3-closebtn">&times;</span>
             <canvas id="line" class="chart chart-line" chart-data="lineData" chart-labels="lineLabels" chart-series="lineSeries" chart-options="lineOptions"></canvas>
             <div id="currentUserLineGraphCon">
             </div>
+            <a class="w3-btn-block w3-text-white" href="{{currentPersonaLink}}" target="_blank" style="margin-top:80px">{{currentPersona}}</a>
           </div>
         </div>
       </div>
@@ -23,7 +24,7 @@
             <div class="panel-body">
               <h2 class="w3-center " style="margin-bottom: 100px;">{{x.channelname}}</h2>
               <p class="number" style="margin-bottom: -145px;">{{x.channelScoreCalculated}}</p>
-              <canvas class="chart chart-doughnut" chart-data="x.pieData" chart-labels="x.pieLabels" width="150" height="150">
+              <canvas class="chart chart-doughnut" chart-data="x.pieData" chart-labels="x.pieLabels" chart-colours="pieColours" width="150" height="150">
 </canvas>
             </div>
           </div>
@@ -45,7 +46,7 @@
               <h2 class="w3-center ">{{x.username}}</h2>
               <h4 class="w3-center"  style="margin-bottom: 100px;">{{x.persona}}</h4>
               <p class="number" style="margin-bottom: -145px;">{{x.userScoreCalculated}}</p>
-              <canvas class="chart chart-doughnut" chart-data="x.pieData" chart-labels="x.pieLabels" width="150" height="150">
+              <canvas class="chart chart-doughnut" chart-data="x.pieData" chart-labels="x.pieLabels" chart-colours="pieColours" width="150" height="150">
 </canvas>
             </div>
           </div>

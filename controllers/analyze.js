@@ -3,6 +3,8 @@ var SlackUser = require('../models/SlackUser');
 var SlackChannel = require('../models/SlackChannel');
 var SentimentScore = require('../models/SentimentScore');
 var ChannelSentimentScore = require('../models/ChannelSentimentScore');
+let fs = require('fs'),
+PDFParser = require("./pdf2json/PDFParser");
 
 indico.apiKey = process.env.INDICO;
 
@@ -15,8 +17,8 @@ exports.analyze = function(req, res, next) {
     SlackUser.findOne({
         userId: req.body.userid
     }, function(err, slackuser) {
-        
-        if(err){
+
+        if (err) {
             res.send("error");
         }
 
@@ -189,10 +191,10 @@ exports.personas = function(req, res, next) {
 
 
                 var calculatedPersona = calculatePersona(data);
-                
+
                 console.log(data);
-                
-                
+
+
                 res.send({
                     "persona": calculatedPersona
                 });
@@ -236,16 +238,18 @@ function calculateScore(results) {
 }
 
 function calculatePersona(data) {
-    
-    var array=[];
-    for(var a in data){
-     array.push([a,data[a]])
+
+    var array = [];
+    for (var a in data) {
+        array.push([a, data[a]])
     }
-    array.sort(function(a,b){return a[1] - b[1]});
+    array.sort(function(a, b) {
+        return a[1] - b[1]
+    });
     array.reverse();
-    
-    
-    
+
+
+
     /*
     Architect
     Logician
@@ -268,6 +272,36 @@ function calculatePersona(data) {
     console.log(str);
     var arr = str.split(",");
     var newstr = arr[0];
-    var personastr = newstr.substring(2, newstr.length-1);
+    var personastr = newstr.substring(2, newstr.length - 1);
     return personastr;
 }
+
+
+
+
+
+exports.analyzeCoverLetter = function(req, res, next) {
+    console.log(req.body);
+    indico.personas(req.body.text).then(function(data) {
+        var array = [];
+        for (var a in data) {
+            array.push([a, data[a]])
+        }
+        array.sort(function(a, b) {
+            return a[1] - b[1]
+        });
+        array.reverse();
+
+        var topthree = [];
+        for (var i = 0; i < 3; i++) {
+            var str = JSON.stringify(array[i]);
+            console.log(str);
+            var arr = str.split(",");
+            var newstr = arr[0];
+            var personastr = newstr.substring(2, newstr.length - 1);
+            topthree.push(personastr);
+        }
+
+        res.send(topthree);
+    });
+};
