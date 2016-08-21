@@ -26,17 +26,17 @@
     </script>
 
     <div class="row" id="userCardsCon">
-      <div ng-repeat="x in usersCards">
-        <div class="col-sm-2 w3-animate-zoom userCard" style="cursor: pointer;">
+      <!--<div ng-repeat="x in usersCards">
+        <div class="col-sm-2 w3-animate-zoom userCard" style="cursor: pointer;" ng-click="showGraph(x.id)">
           <div class="panel">
             <div class="panel-body">
-              <h2 class="w3-center " style="margin-bottom: 100px;">{{x}}</h2>
-              <p class="number" style="margin-bottom: -145px;">{{x}}</p>
+              <h2 class="w3-center " style="margin-bottom: 100px;">{{x.username}}</h2>
+              <p class="number" style="margin-bottom: -145px;">{{x.userScoreCalculated}}</p>
               <canvas id="hi" style="margin-bottom: 50px;" width="100" height="100" />
             </div>
           </div>
         </div>
-      </div>
+      </div>-->
     </div>
   </div>
 </div>

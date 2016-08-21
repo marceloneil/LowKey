@@ -18,6 +18,7 @@ var slackchannelSchema = new mongoose.Schema({
     users: [String],
     messages: [{
         date: Date,
+        user: String,
         body: String
     }],
     dates: [Date]

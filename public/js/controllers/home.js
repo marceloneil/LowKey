@@ -1,5 +1,8 @@
-  angular.module('MyApp', ["chart.js"])
-    .controller('HomeCtrl', function($scope, $location, $window, $auth, $http) {
+angular.module('chart.js',[]);
+var charts = angular.module('myModule',['chart.js']);
+
+angular.module('MyApp', ["myModule"])
+  .controller('HomeCtrl', function($scope, $location, $window, $auth, $http) {
       $scope.isAuthenticated = function() {
         return $auth.isAuthenticated();
       };
@@ -31,10 +34,9 @@
           console.log(response);
         });*/
       };
-$scope.usersCards = [
-  "gey",
-  "phat",
-];
+      $scope.usersCards = [
+
+      ];
       // This gets initialized once upon page load to retrieve the usernames
       $http({
         method: 'GET',
@@ -75,6 +77,7 @@ $scope.usersCards = [
             }
             userScore = userScore / res.data.scores.length;
             userScore = Math.round(userScore * 10) / 10;
+            res.userScoreCalculated = userScore;
             //console.log(userScore);
             angular.element(document.getElementById("userCardsCon")).append('<div class="col-sm-2 w3-animate-zoom userCard" style="cursor: pointer;" onclick="showGraph(\''+res.data.id+'\')"><div class="panel"><div class="panel-body" ><h2 class="w3-center " style="margin-bottom: 100px;">' + res.data.username + '</h2><p class="number" style="margin-bottom: -145px;">' + userScore + '</p><canvas id="' + res.data.username + 'doughnutChart" style="margin-bottom: 50px;" width="100" height="100"></div></div></div>');
 
@@ -109,37 +112,38 @@ $scope.usersCards = [
             console.log(response);
           });
         }
-        $scope.users = response;
+            $scope.usersCards.push(res.data);
 
-      }, function errorCallback(response) {
-        console.log(response);
-      });
-
-      /*$http({
-        method: 'POST',
-        data: {
-          name: "splacorn"
-        },
-        url: 'https://lowkey-kshen3778.c9users.io/analyze'
-      }).then(function successCallback(response) {
-        console.log(response);
-      }, function errorCallback(response) {
-        console.log(response);
-      });*/
-
-
-
-
-
-
-
-
-
-
-      $scope.lineGraphData = Array();
-      $scope.genLineGraph = function(dayArray) {
-        for (var i = 0; i < dayArray.length; i++) {
-          $scope.lineGraphData.push(dayArray[i].score);
+          }, function errorCallback(response) {
+            console.log(response);
+          });
         }
-      };
-    });
+      });
+        /*$http({
+          method: 'POST',
+          data: {
+            name: "splacorn"
+          },
+          url: 'https://lowkey-kshen3778.c9users.io/analyze'
+        }).then(function successCallback(response) {
+          console.log(response);
+        }, function errorCallback(response) {
+          console.log(response);
+        });*/
+
+
+
+
+
+
+
+
+
+
+        $scope.lineGraphData = [];
+        $scope.genLineGraph = function(dayArray) {
+          for (var i = 0; i < dayArray.length; i++) {
+            $scope.lineGraphData.push(dayArray[i].score);
+          }
+        };
+});

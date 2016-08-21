@@ -19,91 +19,94 @@ var web = new WebClient(token);
 exports.start = function() {
     rtm.start();
     web.channels.list(function(err, res) {
-        async.map(res.channels, 
-        function (channel, Callback) {
-            if (firstTime) {
-                var slackchannel = new SlackChannel({
-                    channelId: channel.id,
-                    channelName: channel.name
-                });
-                slackchannel.save(function(err, res) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-            }
-            console.log(channel);
-            web.channels.history(
-                channel.id, {
-                    inclusive: 1,
-                    count: 10
-                },
-                function(err, res) {
-                    if (firstTime) {
-                        for (var j = 0; j < res.messages.length; j++) {
-                            var message = res.messages[j];
-                            if (message.bot_id || !message.user || message.text.includes("has joined the channel")) {
-                                continue;
-                            }
-                            else {
-                                var date = new Date(message.ts * 1000);
-                                date.setHours(0, 0, 0, 0);
-                                var msg = {
-                                    date: date,
-                                    body: message.text.replace(/<.*>/, '')
-                                };
+        async.map(
+            res.channels,
+            function(channel, Callback) {
+                if (firstTime) {
+                    var slackchannel = new SlackChannel({
+                        channelId: channel.id,
+                        channelName: channel.name,
+                        users: channel.members
+                    });
+                    slackchannel.save(function(err, res) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
+                }
 
-                                SlackUser.update({
-                                        userId: message.user
-                                    }, {
-                                        $push: {
-                                            'messages': msg
-                                        },
-                                        $addToSet: {
-                                            'dates': date
-                                        }
-                                    }, {
-                                        safe: true,
-                                        upsert: true
-                                    },
-                                    function(err, data) {
-                                        if (err) {
-                                            console.log(err);
-                                        }
-                                    }
-                                );
+                web.channels.history(
+                    channel.id, {
+                        inclusive: 1,
+                        count: 1000
+                    },
+                    function(err, res) {
+                        if (firstTime) {
+                            for (var j = 0; j < res.messages.length; j++) {
+                                var message = res.messages[j];
+                                if (message.bot_id || !message.user || message.text.includes("has joined the channel")) {
+                                    continue;
+                                }
+                                else {
+                                    var date = new Date(message.ts * 1000);
+                                    date.setHours(0, 0, 0, 0);
+                                    var msg = {
+                                        date: date,
+                                        body: message.text.replace(/<.*>/, '').replace(/\r?\n|\r/g, '')
+                                    };
 
-                                SlackChannel.update({
-                                        channelId: channel.id
-                                    }, {
-                                        $push: {
-                                            'messages': msg
+                                    SlackUser.update({
+                                            userId: message.user
+                                        }, {
+                                            $push: {
+                                                'messages': msg
+                                            },
+                                            $addToSet: {
+                                                'dates': date
+                                            }
+                                        }, {
+                                            safe: true,
+                                            upsert: true
                                         },
-                                        $addToSet: {
-                                            'dates': date,
-                                            'users': message.user
+                                        function(err, data) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
                                         }
-                                    }, {
-                                        safe: true,
-                                        upsert: true
-                                    },
-                                    function(err, data) {
-                                        if (err) {
-                                            console.log(err);
+                                    );
+                                    
+                                    msg.user = message.user;
+
+                                    SlackChannel.update({
+                                            channelId: channel.id
+                                        }, {
+                                            $push: {
+                                                'messages': msg
+                                            },
+                                            $addToSet: {
+                                                'dates': date
+                                            }
+                                        }, {
+                                            safe: true,
+                                            upsert: true
+                                        },
+                                        function(err, data) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
                                         }
-                                    }
-                                );
+                                    )
+                                }
                             }
                         }
                     }
+                )
+            },
+            function(err, res) {
+                if (err) {
+                    console.log(err, res);
                 }
-            )
-        },
-        function(err, res){
-            if(err){
-                console.log(err, res);
-            }
-        });
+            });
     });
     web.users.list(function(err, res) {
         if (err) {
@@ -134,7 +137,7 @@ exports.start = function() {
         date.setHours(0, 0, 0, 0);
         var msg = {
             date: date,
-            body: message.text.replace(/<.*>/, '')
+            body: message.text.replace(/<.*>/, '').replace(/\r?\n|\r/g, '')
         };
         console.log(message.channel);
 
@@ -182,6 +185,9 @@ exports.start = function() {
             );
 
             if (message.channel.charAt(0) === "C") {
+                
+                msg.user = message.user;
+                
                 SlackChannel.update({
                         channelId: message.channel
                     }, {
@@ -189,8 +195,7 @@ exports.start = function() {
                             'messages': msg
                         },
                         $addToSet: {
-                            'dates': date,
-                            'users': message.user
+                            'dates': date
                         }
                     }, {
                         safe: true,
