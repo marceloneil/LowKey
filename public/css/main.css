@@ -379,4 +379,5 @@ textarea {
   margin: 10pt;
   font-size: 25pt;
   cursor: pointer;
+  text-align: middle;
 }

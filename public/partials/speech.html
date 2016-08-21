@@ -1,31 +1,45 @@
 <div class="container-fluid" ng-controller="SpeechCtrl">
-    <!--<script>
+  <!--<script>
             if (window.location.protocol === "http:") window.location.protocol = "https:";
         </script>-->
-    
-    <div class="container w3-center" style = "margin-top: 3%;">
-        <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
-              <div class="panel">
-                <div class="panel-body">
-                    <h1>Press to capture</h1>
-                    <button class="w3-btn col-sm-4 col-sm-offset-4" ng-click="toggleRecording()"><i ng-show="recordingState == false" class="fa fa-play"></i><i ng-show="recordingState == true" class="fa fa-stop"></i></button>
-                </div>
-            </div>
+
+  <div class="container w3-center" style="margin-top: 3%;">
+    <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
+      <div class="panel">
+        <div class="panel-body">
+          <h1>Press to capture</h1>
+          <button class="w3-btn col-sm-4 col-sm-offset-4" ng-click="toggleRecording()"><i ng-show="recordingState == false" class="fa fa-play"></i><i ng-show="recordingState == true" class="fa fa-stop"></i></button>
         </div>
-        <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
-              <div class="panel">
-                <div class="panel-body">
-                     <canvas id="line" class="chart chart-line" chart-data="lineData" chart-labels="lineLabels" chart-series="lineSeries" chart-options="lineOptions"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
-              <div class="panel">
-                <div class="panel-body title">
-                     {{currentPersona}}
-                </div>
-            </div>
-        </div>
-        
+      </div>
     </div>
+    <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
+      <div class="panel">
+        <div class="panel-body">
+          <canvas id="line" class="chart chart-line" chart-data="lineData" chart-labels="lineLabels" chart-series="lineSeries" chart-options="lineOptions"></canvas>
+        </div>
+      </div>
+    </div>
+    <div ng-if="currentPersona" class="col-sm-8 col-sm-offset-2 w3-animate-zoom">
+      <div class="panel">
+        <div class="row">
+          <div class="col-md-8">
+            <a style="btn title" href="{{currentPersonaLink}}" target="_blank"><h1 class="title">{{currentPersona}}</h1></a>
+            <p style="text-align: default; margin: 5px">{{currentPersonaText}} <a href="{{currentPersonaLink}}" target="_blank">Learn More</a></p>
+          </div>
+          <div class="col-md-4">
+            <img src="{{currentPersonaAvatar}}" style="height: 30vh; margin-bottom: 1vh">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-8 col-sm-offset-2 w3-animate-zoom" ng-show="paused == 1">
+      <div class="panel">
+        <div class="panel-body">
+          <h2>Executive Summary:</h2>
+          <p>{{suggestedChannel}}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>

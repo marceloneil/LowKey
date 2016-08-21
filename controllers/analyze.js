@@ -307,7 +307,8 @@ exports.analyzePersona = function(req, res, next) {
         var arr = str.split(",");
         var newstr = arr[0];
         var personastr = newstr.substring(2, newstr.length - 1);
-        return personastr;
+        console.log(personastr);
+        res.send(personastr);
     });
 };
 
